@@ -1,9 +1,9 @@
 const sensorChannel = {
     channelTrust: 0.95,
     mappingRules: {
-        raw_reading: 'pratyaksa',
-        computed_avg: 'anumana',
-        calibration_note: 'sabda'
+        'content.raw_reading': 'pratyaksa',
+        'content.computed_avg': 'anumana',
+        'content.calibration_note': 'sabda'
     }
 };
 

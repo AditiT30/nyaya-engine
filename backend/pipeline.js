@@ -7,6 +7,8 @@ const beliefStore = require('./src/store/beliefStore');
 const vyaptiLearner = require('./src/learning/vyaptiLearner');
 const vyaptiStore = require('./src/store/vyaptiStore');
 const tarkaEngine = require('./src/tarka/tarkaEngine');
+const beliefRevisionModule = require('./src/revision/beliefRevisionModule');
+const anumanaEngine = require('./src/anumana/anumanaEngine');
 
 //payload contains - rawInput
 const runPipeline = (rawInput) => {
@@ -50,15 +52,26 @@ const runPipeline = (rawInput) => {
 
     // Guard — no rule yet, skip tarka engine on first belief
     if (rule == null) {
-        console.log('Belief stored. No rule formed yet , tarka engine skipped.');
-        console.log(primaryBelief);
-        return;
+        return {
+            belief: primaryBelief,
+            rule: null,
+            anumana: null,
+            inferenceStatus: null,
+            revisionLog: null
+        };
     }
-   let inferenceStatus = tarkaEngine.validateInference(rule.hetu , rule.sadhya );
 
+    const anumanaResult = anumanaEngine.run(primaryBelief, rule);
+    let inferenceStatus = tarkaEngine.validateInference(rule.hetu , rule.sadhya );
+    const revisionLog = beliefRevisionModule.revise(primaryBelief, inferenceStatus);
 
-    console.log(primaryBelief);
-    console.log(inferenceStatus);
+    return {
+        belief: primaryBelief,
+        rule,
+        anumana: anumanaResult,
+        inferenceStatus,
+        revisionLog
+    };
 
 }
 

@@ -1,9 +1,10 @@
 const manualChannel = {
     channelTrust: 0.85,
     mappingRules: {
-        proposition: 'anumana',
-        reason: 'hetu',
-        evidence: 'pratyaksa'
+        'content.proposition': 'pratyaksa',
+        'content.reason': 'anumana',
+        'content.evidence': 'sabda',
+        'content.pramana_type': 'pratyaksa'
     }
 };
 

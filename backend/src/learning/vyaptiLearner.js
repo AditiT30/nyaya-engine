@@ -1,6 +1,14 @@
 const vyaptiStore = require('../store/vyaptiStore');
 const beliefStore = require('../store/beliefStore');
 
+const getIdentifier = (belief) => {
+    return belief.proposition ||
+        belief.content?.text ||
+        belief.content?.proposition ||
+        String(belief.content?.raw_reading) ||
+        `belief_${belief.id}`;
+};
+
 const vyaptiLearner = {
 
     //checks for the partner of new belief
@@ -21,8 +29,9 @@ const vyaptiLearner = {
             // link them in the VyaptiStore (Hetu -> Sadhya)
             //increments the count and checks if the rule becomes 'isValid'
             const rule = vyaptiStore.addObservation(
-                existingBelief.content.text,
-                newBelief.content.text
+                //used getIdentifier as "keys" vary in  diff. payloads
+                getIdentifier(existingBelief),
+                getIdentifier(newBelief)
             );
 
             if(rule) return rule;

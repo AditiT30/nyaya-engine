@@ -21,7 +21,7 @@ const vyaptiStore = {
                 hetu,
                 sadhya,
                 occurrences: 1,
-                threshold: 5, // Requires 5 sightings to be "Valid"
+                threshold: 3, // Requires 5 sightings to be "Valid"
                 isValid: false
             };
             rules.set(id, newRule); //outside id acts as key in the Map
@@ -47,6 +47,9 @@ const vyaptiStore = {
 
         rules.set(id, updatedRule);
         return updatedRule;
+    },
+    listRules: () => {
+        return Array.from(rules.values());
     }
 };
 

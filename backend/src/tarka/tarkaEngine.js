@@ -11,7 +11,7 @@ const tarkaEngine = {
      */
 
     validateInference: (hetu, sadhya) => {
-        console.log(hetu,sadhya);
+        // console.log(hetu,sadhya);
 
         const ruleId = `${hetu}_to_${sadhya}`;
         const rule = vyaptiStore.getRule(ruleId);
@@ -22,19 +22,31 @@ const tarkaEngine = {
             fallacy.check(hetu, sadhya)
         );
         if (detectedFallacy) {
-            console.warn(`Tarka Veto: ${detectedFallacy.name} detected for ${hetu} -> ${sadhya}`);
-            return InferenceStatuses.SUSPENDED;
+            // console.warn(`Tarka Veto: ${detectedFallacy.name} detected for ${hetu} -> ${sadhya}`);
+            return {
+                status: InferenceStatuses.SUSPENDED,
+                reason: 'FALLACY',
+                fallacy: detectedFallacy.name
+            };
         }
 
         // If the rule doesn't exist or hasn't hit the threshold
         if (!rule || !rule.isValid) {
-            console.log(`💡 Tarka Doubt: Rule ${ruleId} is weak or unproven.`);
-            return InferenceStatuses.DOUBTFUL;
+            // console.log(`Tarka Doubt: Rule ${ruleId} is weak or unproven.`);
+            return {
+                status: InferenceStatuses.DOUBTFUL,
+                reason: 'WEAK_RULE',
+                fallacy: null
+            };
         }
 
         //Strong Rule + No Fallacies
-        console.log(`Tarka Approved: ${hetu} -> ${sadhya} is logically correct.`);
-        return InferenceStatuses.PROCEED;
+        // console.log(`Tarka Approved: ${hetu} -> ${sadhya} is logically correct.`);
+        return {
+            status: InferenceStatuses.PROCEED,
+            reason: 'VALID',
+            fallacy: null
+        };
 
 
     }

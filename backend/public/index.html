@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyaya Engine</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+        .header { background: #1a1f2e; border-bottom: 1px solid #2d3748; padding: 16px 32px; display: flex; align-items: center; gap: 16px; }
+        .header h1 { font-size: 22px; font-weight: 600; color: #68d391; }
+        .header p { font-size: 13px; color: #718096; }
+
+        .layout { display: grid; grid-template-columns: 1fr 2fr; gap: 0; height: calc(100vh - 65px); }
+
+        .sidebar { background: #1a1f2e; border-right: 1px solid #2d3748; padding: 24px; overflow-y: auto; }
+        .sidebar h2 { font-size: 13px; font-weight: 600; color: #68d391; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+
+        .main { display: flex; flex-direction: column; overflow: hidden; }
+
+        .btn { background: #276749; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 12px; font-weight: 500; }
+        .btn:hover { background: #2f855a; }
+        .btn:disabled { background: #2d3748; color: #718096; cursor: not-allowed; }
+
+        .terminal { flex: 1; background: #0d1117; padding: 20px 24px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; }
+        .terminal-line { white-space: pre; }
+        .line-divider  { color: #276749; }
+        .line-header   { color: #68d391; font-weight: bold; }
+        .line-proceed  { color: #68d391; }
+        .line-doubtful { color: #ecc94b; }
+        .line-suspended { color: #fc8181; }
+        .line-retract  { color: #fc8181; }
+        .line-ignored  { color: #718096; }
+        .line-anumana  { color: #76e4f7; }
+        .line-default  { color: #cbd5e0; }
+
+        .tabs { display: flex; border-bottom: 1px solid #2d3748; background: #1a1f2e; }
+        .tab { padding: 10px 20px; font-size: 13px; cursor: pointer; color: #718096; border-bottom: 2px solid transparent; }
+        .tab.active { color: #68d391; border-bottom-color: #68d391; }
+
+        .panel { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 8px 12px; background: #1a1f2e; color: #68d391; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 8px 12px; border-bottom: 1px solid #2d3748; color: #cbd5e0; }
+        tr:hover td { background: #1a1f2e; }
+
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .badge-active    { background: #1c4532; color: #68d391; }
+        .badge-retracted { background: #3b1515; color: #fc8181; }
+        .badge-revised   { background: #3b2f00; color: #ecc94b; }
+
+        .empty { color: #718096; font-size: 13px; text-align: center; padding: 40px; }
+        .cursor { display: inline-block; width: 8px; height: 14px; background: #68d391; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const API = 'http://localhost:3001';
+
+    function classifyLine(line) {
+        if (line.includes('═') || line.includes('─')) return 'line-divider';
+        if (line.includes('STEP') || line.includes('SIMULATION')) return 'line-header';
+        if (line.includes('✓ PROCEED') || line.includes('APPROVED')) return 'line-proceed';
+        if (line.includes('? DOUBTFUL')) return 'line-doubtful';
+        if (line.includes('✗ SUSPENDED') || line.includes('VETO')) return 'line-suspended';
+        if (line.includes('RETRACTED')) return 'line-retract';
+        if (line.includes('IGNORED')) return 'line-ignored';
+        if (line.includes('Anumana') || line.includes('Pancavayava') || line.includes('Pratijña') || line.includes('Nigamana')) return 'line-anumana';
+        return 'line-default';
+    }
+
+    function Terminal({ lines, running }) {
+        const ref = useRef(null);
+        useEffect(() => {
+            if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+        }, [lines]);
+
+        return (
+            <div className="terminal" ref={ref}>
+                {lines.length === 0 && !running && (
+                    <div className="empty">Click "Run Simulation" to start the Nyaya Engine</div>
+                )}
+                {lines.map((line, i) => (
+                    <div key={i} className={`terminal-line ${classifyLine(line)}`}>{line}</div>
+                ))}
+                {running && <span className="cursor" />}
+            </div>
+        );
+    }
+
+    function BeliefsTable({ beliefs }) {
+        if (!beliefs.length) return <div className="empty">No beliefs yet — run the simulation first</div>;
+        return (
+            <table>
+                <thead>
+                <tr>
+                    <th>Proposition</th>
+                    <th>Source</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {beliefs.map((b, i) => (
+                    <tr key={i}>
+                        <td>{b.proposition || b.content?.text || 'unknown'}</td>
+                        <td>{b.source}</td>
+                        <td>{b.finalConfidence} ({b.displayPercentage}%)</td>
+                        <td>
+                            <span className={`badge badge-${b.status}`}>{b.status}</span>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        );
+    }
+
+    function VyaptiTable({ rules }) {
+        if (!rules.length) return <div className="empty">No rules yet — run the simulation first</div>;
+        return (
+            <table>
+                <thead>
+                <tr>
+                    <th>Hetu</th>
+                    <th>Sadhya</th>
+                    <th>Observations</th>
+                    <th>Valid</th>
+                </tr>
+                </thead>
+                <tbody>
+                {rules.map((r, i) => (
+                    <tr key={i}>
+                        <td>{r.hetu}</td>
+                        <td>{r.sadhya}</td>
+                        <td>{r.occurrences}</td>
+                        <td>
+                            <span className={`badge ${r.isValid ? 'badge-active' : 'badge-retracted'}`}>
+                                {r.isValid ? 'valid' : 'weak'}
+                            </span>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        );
+    }
+
+    function App() {
+        const [lines, setLines]     = useState([]);
+        const [running, setRunning] = useState(false);
+        const [tab, setTab]         = useState('simulation');
+        const [beliefs, setBeliefs] = useState([]);
+        const [rules, setRules]     = useState([]);
+
+        const runSimulation = () => {
+            setLines([]);
+            setRunning(true);
+
+            const es = new EventSource(`${API}/api/infer/simulate`);
+
+            es.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data === '__DONE__') {
+                    es.close();
+                    setRunning(false);
+                    fetchBeliefs();
+                    fetchRules();
+                } else {
+                    setLines(prev => [...prev, data]);
+                }
+            };
+
+            es.onerror = () => {
+                es.close();
+                setRunning(false);
+            };
+        };
+
+        const fetchBeliefs = async () => {
+            const res = await fetch(`${API}/api/beliefs`);
+            const data = await res.json();
+            if (data.success) setBeliefs(data.beliefs);
+        };
+
+        const fetchRules = async () => {
+            const res = await fetch(`${API}/api/vyapti`);
+            const data = await res.json();
+            if (data.success) setRules(data.rules);
+        };
+
+        return (
+            <div>
+                <div className="header">
+                    <div>
+                        <h1>Nyaya Engine</h1>
+                        <p>Source-sensitive epistemic reasoning — Aravalli Hills Forest Fire Investigation</p>
+                    </div>
+                </div>
+
+                <div className="layout">
+                    <div className="sidebar">
+                        <h2>Controls</h2>
+                        <button className="btn" onClick={runSimulation} disabled={running}>
+                            {running ? 'Running...' : 'Run Simulation'}
+                        </button>
+                        <button className="btn" onClick={fetchBeliefs} disabled={running} style={{marginTop: 8, background: '#2b4a6f'}}>
+                            Refresh Beliefs
+                        </button>
+                        <button className="btn" onClick={fetchRules} disabled={running} style={{marginTop: 8, background: '#2b4a6f'}}>
+                            Refresh Rules
+                        </button>
+
+                        <div style={{marginTop: 32}}>
+                            <h2>Source Tiers</h2>
+                            <div style={{marginTop: 12, fontSize: 13, lineHeight: 2, color: '#a0aec0'}}>
+                                <div>🐦 Twitter <span style={{color:'#ecc94b'}}>37%</span></div>
+                                <div>📝 Manual <span style={{color:'#68d391'}}>72%</span></div>
+                                <div>📡 Sensor <span style={{color:'#68d391'}}>76%</span></div>
+                            </div>
+                        </div>
+
+                        <div style={{marginTop: 32}}>
+                            <h2>Pramana Ranks</h2>
+                            <div style={{marginTop: 12, fontSize: 13, lineHeight: 2, color: '#a0aec0'}}>
+                                <div>Pratyaksa <span style={{color:'#68d391'}}>1.0</span></div>
+                                <div>Anumana <span style={{color:'#68d391'}}>0.8</span></div>
+                                <div>Upamana <span style={{color:'#ecc94b'}}>0.7</span></div>
+                                <div>Sabda <span style={{color:'#fc8181'}}>0.6</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="main">
+                        <div className="tabs">
+                            <div className={`tab ${tab==='simulation'?'active':''}`} onClick={()=>setTab('simulation')}>
+                                Simulation Output
+                            </div>
+                            <div className={`tab ${tab==='beliefs'?'active':''}`} onClick={()=>setTab('beliefs')}>
+                                Belief Store ({beliefs.length})
+                            </div>
+                            <div className={`tab ${tab==='vyapti'?'active':''}`} onClick={()=>setTab('vyapti')}>
+                                Vyapti Rules ({rules.length})
+                            </div>
+                        </div>
+
+                        {tab === 'simulation' && <Terminal lines={lines} running={running} />}
+                        {tab === 'beliefs' && <div className="panel"><BeliefsTable beliefs={beliefs} /></div>}
+                        {tab === 'vyapti' && <div className="panel"><VyaptiTable rules={rules} /></div>}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

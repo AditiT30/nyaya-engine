@@ -26,6 +26,7 @@ const hetvabhasaRegistry = [
         name: 'Viruddha (Contradiction)',
         // reason actually proves the opposite.
         check: (hetu, sadhya) => {
+            if (!hetu || !sadhya) return false;
             const h = hetu.toLowerCase();
             const s = sadhya.toLowerCase();
 
@@ -57,7 +58,7 @@ const hetvabhasaRegistry = [
         name: 'Asiddha (Unestablished)',
         // "reason" itself isn't even proven yet
         check: (hetu, sadhya) => {
-            const source = beliefStore.listBeliefs().find(b => b.content.text === hetu);
+            const source = beliefStore.listBeliefs().find(b => b.proposition=== hetu);
             return !source || source.finalConfidence < 0.2 || source.status === InferenceStatuses.SUSPENDED;
         }
     },
