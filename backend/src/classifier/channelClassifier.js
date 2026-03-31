@@ -11,7 +11,6 @@ const manualChannel = require('./channels/manualChannel');
 
 const classifyChannel = (payload) => {
 
-    // Extract the source string from detectionMetadata (defined in pipeline.js)
     const source = payload.source;
     let selectedChannel;
 

@@ -13,9 +13,15 @@ app.use(cors());
 app.use(express.json()); //built-in parser that allows the server to read and understand JSON data
 
 // Serves React frontend from public folder
-const staticPath = path.join(__dirname, '..', 'public');
-console.log('Serving static from:', staticPath);
-app.use(express.static(staticPath));
+const frontendPath = '/Users/adititiwari/WebstormProjects/nyaya-engine/frontend/public'
+
+app.use(express.static(frontendPath))
+
+app.get('/', (req, res) => {
+    res.sendFile(frontendPath + '/index.html')
+})
+// console.log('Serving static from:', staticPath);
+// app.use(express.static(staticPath));
 
 
 // API routes

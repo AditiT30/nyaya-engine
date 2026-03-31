@@ -1,7 +1,7 @@
 const vyaptiStore = require('../store/vyaptiStore');
 const beliefStore = require('../store/beliefStore');
 
-const getIdentifier = (belief) => {
+const getIdentifier = (belief) => { //TO OBTAIN values corresponding to different types of keys
     return belief.proposition ||
         belief.content?.text ||
         belief.content?.proposition ||
@@ -13,8 +13,8 @@ const vyaptiLearner = {
 
     //checks for the partner of new belief
     learnFromNewBelief: (newBelief) => {
-        // Threshold set to 0.4 to catch strong signals from "noisy" sources like Twitter
-        if (newBelief.confidence < 0.2) return null;
+        // Threshold set to 0.2 to catch strong signals from "noisy" sources like Twitter
+        if (newBelief.finalConfidence < 0.2) return null;
 
         const activeBeliefs = beliefStore.listBeliefs();
 

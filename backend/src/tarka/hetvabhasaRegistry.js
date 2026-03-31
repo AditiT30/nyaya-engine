@@ -45,7 +45,7 @@ const hetvabhasaRegistry = [
     //3. Satpratipaksa (Is there an equally strong, opposite inference already in the store?)
     {
         name: 'Satpratipaksa (Balanced Opposition)',
-        check: (hetu, sadhya, store) => {
+        check: (hetu, sadhya) => {
             return beliefStore.listBeliefs().some(b =>
                 b.content.text === `NOT_${sadhya}` &&
                 b.status === InferenceStatuses.PROCEED

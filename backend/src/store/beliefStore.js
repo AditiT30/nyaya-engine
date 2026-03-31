@@ -14,7 +14,6 @@ const beliefs = new Map();
 const beliefStore = {
 
     //key - value(here,function)
-
     addBelief: (id, beliefData) => {
         const entry = {
             ...beliefData,

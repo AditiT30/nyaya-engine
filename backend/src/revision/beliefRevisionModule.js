@@ -4,7 +4,6 @@ const InferenceStatuses = require('../tarka/inferenceStatuses');
 
 const DECAY_FACTOR = 0.85;
 
-
 const beliefRevisionModule = {
 
     /*

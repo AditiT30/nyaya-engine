@@ -1,11 +1,10 @@
 const { PRAMANA_RANKS } = require('../tarka/constants');
 
 // Resolves dot notation paths like 'content.text' → payload.content.text
-
 const getNestedValue = (obj, path) => { //obj is full payload object, path is a string
 
     //reduce takes an array and collapses it into a single value by running a function on each element one at a time.
-    // 2 parts - (current, key) — the function that runs on each step , obj-the starting value of current-full payload object
+    // 2 parts - (current, key)=>{...} — the function that runs on each step , obj-the starting value of current(full payload object)
     //as channel mapping rules are strings at runtime
     return path.split('.').reduce((current, key) =>
             current && current[key] !== undefined ? current[key] : undefined
